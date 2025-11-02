@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack Visualizer | DSA Visual Lab</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+
+<style>
+    .container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 60px;
+}
+
+/* LEFT SECTION (STACK) */
+.left-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* STACK BOX */
+.stack-container {
+    width: 220px;
+    border-left: 3px solid rgba(255,255,255,0.5);
+    border-right: 3px solid rgba(255,255,255,0.5);
+    border-bottom: 3px solid rgba(255,255,255,0.5);
+    padding: 10px 0;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+/* INPUT BAR AT BOTTOM */
+.input-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* INPUT + BUTTONS SAME STYLE */
+input {
+    padding: 10px;
+    width: 160px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.07);
+    color: white;
+    backdrop-filter: blur(6px);
+}
+
+.btn {
+    padding: 10px 20px;
+   
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(246, 233, 233, 0.863);
+    color: white;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn:hover {
+    transform: scale(1.07);
+    background: rgba(255,255,255,0.15);
+}
+
+/* RIGHT SECTION (LOGS) */
+.log-box {
+    width: 350px;
+    height: 300px;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 14px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.info {
+    display: flex;
+    flex-direction: column;
+}
+/* Drop animation for new stack item */
+.drop {
+    animation: dropAnim 0.35s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+@keyframes dropAnim {
+    0% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
+    70% {
+        opacity: 1;
+        transform: translateY(10px) scale(1.05);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+</style>
+
+</head>
+<body>
+<div class="container">
+    <div class="info">
+        <h1 class="title">Stack Visualizer</h1>
+        <div class="input-row">
+            <input type="text" id="stackValue" placeholder="Enter value">
+            <button class="btn" onclick="pushStack()">Push</button>
+            <button class="btn" onclick="popStack()">Pop</button>
+            <button class="btn" onclick="resetStack()">Reset</button>
+        </div>
+        </div>
+    <!-- LEFT -->
+    <div class="left-section">
+
+        <div class="stack-container" id="stackArea"></div>
+
+        
+
+        <br>
+        <a href="../index.html" class="btn">⬅ Back Home</a>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="log-box" id="logBox">Logs:<br></div>
+</div>
+
+<script src="../assets/js/stack.js"></script>
+</body>
+</html>

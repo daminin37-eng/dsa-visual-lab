@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #18184a, #0b0b0b);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.hero {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 38px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-bottom: 40px;
+}
+
+.card-container {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    width: 80%;
+    max-width: 800px;
+    margin: auto;
+}
+
+.glass-card {
+    padding: 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    text-align: center;
+    font-size: 18px;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.glass-card:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    background: rgba(255,255,255,0.12);
+}
+
+.coming {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+footer {
+    position: fixed;
+    bottom: 15px;
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+footer a {
+    color: #4db8ff;
+}

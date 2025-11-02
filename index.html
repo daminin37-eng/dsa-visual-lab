@@ -2,18 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DSA Visual Lab</title>
-    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styleh.css">
 </head>
 <body>
 
-<h2>DSA Visual Lab - Phase 1</h2>
-<p>🚀 Understanding Data Structures through Visualization</p>
+<div class="hero">
+    <h1 class="title">DSA Visual Lab</h1>
+    <p class="subtitle">Interactive & Animated Data Structure Visualizations</p>
 
-<div id="app">
-    <button onclick="loadStack()">Stack Visualizer</button>
+    <div class="card-container">
+        
+            <a href="visualizers/array.html" class="glass-card">Array</a>
+            <a href="visualizers/stack.html" class="glass-card">Stack</a>
+            <a href="visualizers/queue.html" class="glass-card">Queue</a>
+
+            <button class="glass-card coming">Linked List</button>
+            <button class="glass-card coming">Tree</button>
+            <button class="glass-card coming">Graph</button>
+      
+    </div>
 </div>
 
-<script src="script.js"></script>
+<footer>
+    <p>Made with ❤️ by Damini | <a href="#">GitHub</a></p>
+</footer>
+
+<script src="assets/js/main.js"></script>
 </body>
 </html>
