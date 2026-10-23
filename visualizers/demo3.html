@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fixed Size Array Memory Visualizer</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #18184a, #0b0b0b);
+  color: white;
+}
+.title {
+  text-align: center;
+  font-size: 26px;
+  padding: 15px;
+  border-bottom: 2px solid #444;
+}
+.container {
+  padding: 15px;
+  display: grid;
+  gap: 15px;
+}
+.panel {
+  border: 2px solid #444;
+  padding: 1px;
+  background: #0f172a;
+}
+.panel h3 {
+  text-align: center;
+  border-bottom: 1px solid #555;
+  padding-bottom: 5px;
+}
+.op {
+  display: inline-block;
+  margin: 10px;
+  vertical-align: top;
+}
+input, select, button {
+  margin-top: 5px;
+  padding: 6px;
+}
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.memory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+}
+.cell {
+  width: 340px;
+  border: 2px solid #888;
+  background: black;
+}
+.address {
+  background: #022c22;
+  padding: 4px;
+  font-size: 13px;
+  color: #22c55e;
+  text-align: center;
+}
+.value {
+  padding: 6px;
+  text-align: center;
+  border-top: 1px solid #555;
+}
+.bytes {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border-top: 1px solid #555;
+}
+.byte {
+  background: #020617;
+  padding: 4px;
+  font-size: 11px;
+  border: 1px solid #333;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="title">Fixed Size Array (Logical + Bit Memory)</div>
+<a href="../index.html" class="btn back-btn">⬅ Back Home</a>
+<div class="container">
+
+  <!-- Operations Panel -->
+  <div class="panel">
+    <h3>Operations</h3>
+
+    <div class="op">
+      <h4>Create Array</h4>
+      <input id="sizeInput" placeholder="Size (1–8)" type="number">
+      <label for="type">Select type:</label>
+      <select id="type">
+        <option value="number">Integer</option>
+        <option value="float">Float</option>
+        <option value="char">Character</option>
+      </select>
+      <button onclick="createArray()">Create</button>
+      <p id="info"></p>
+    </div>
+
+    <div class="op">
+      <h4>Add</h4>
+      <input id="val" placeholder="Number / Char">
+      <button onclick="add()">Add</button>
+    </div>
+
+    <div class="op">
+      <h4>Update</h4>
+      <input id="uIndex" placeholder="Index" type="number">
+      <input id="uVal" placeholder="New value">
+      <button onclick="update()">Update</button>
+    </div>
+
+    <div class="op">
+      <h4>Delete</h4>
+      <input id="dIndex" placeholder="Index" type="number">
+      <button onclick="remove()">Delete</button>
+    </div>
+  </div>
+
+  <!-- Memory Panel -->
+  <div class="panel">
+    <h3>Memory Representation</h3>
+    <div class="memory" id="memory"></div>
+  </div>
+
+</div>
+
+<script>
+const BASE_ADDRESS = 1000;
+const MIN_SIZE = 1;
+const MAX_SIZE = 8;
+
+let MAX_SIZE_USER = 0;
+let arr = [];
+let arrayType = null; // "number", "float", "char"
+let ELEMENT_SIZE = 4; // bytes per element
+
+// Helpers
+function numberBytes(n) {
+  // 4 bytes for integer/float
+  return Array.from({ length: 4 }, (_, i) =>
+    ((n >> ((3 - i) * 8)) & 255).toString(2).padStart(8, "0")
+  );
+}
+function floatBytes(f) {
+  const buf = new ArrayBuffer(4);
+  new DataView(buf).setFloat32(0, f); // 32-bit float
+  const bytes = [];
+  for (let i = 0; i < 4; i++) {
+    bytes.push(new Uint8Array(buf)[i].toString(2).padStart(8,'0'));
+  }
+  return bytes;
+}
+
+function charBytes(c) {
+  // 1 byte for char
+  return [c.charCodeAt(0).toString(2).padStart(8, "0")];
+}
+
+// Create array
+function createArray() {
+  const size = Number(document.getElementById("sizeInput").value);
+  arrayType = document.getElementById("type").value;
+
+  if (isNaN(size) || size < MIN_SIZE || size > MAX_SIZE) {
+    info.innerText = `Size must be between ${MIN_SIZE} and ${MAX_SIZE}`;
+    return;
+  }
+
+  MAX_SIZE_USER = size;
+  arr = [];
+  ELEMENT_SIZE = (arrayType === "char") ? 1 : 4;
+
+  info.innerText = `Array of type ${arrayType} created with size ${size}\nBase Address: ${BASE_ADDRESS}\tElement Size: ${ELEMENT_SIZE} bytes`;
+
+  render();
+}
+
+// Render memory
+function render() {
+  const mem = document.getElementById("memory");
+  mem.innerHTML = "";
+
+  for (let i = 0; i < MAX_SIZE_USER; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    const addr = document.createElement("div");
+    addr.className = "address";
+    addr.innerText = `Address: ${BASE_ADDRESS + i * ELEMENT_SIZE}`;
+
+    const val = document.createElement("div");
+    val.className = "value";
+    const indexDiv = document.createElement("div");
+    indexDiv.className = "value";  // new class for index
+    indexDiv.innerText = `Index: ${i}`;
+
+    const bytesDiv = document.createElement("div");
+    bytesDiv.className = "bytes";
+    bytesDiv.style.gridTemplateColumns = `repeat(${ELEMENT_SIZE}, 1fr)`;
+
+    if (i < arr.length) {
+      val.innerText = `Value: ${arr[i]}`;
+      const bytes = (arrayType === "char") ? charBytes(arr[i]) : (arrayType === "number") ? numberBytes(arr[i]) : floatBytes(arr[i]);
+
+      bytes.forEach(b => {
+        const byte = document.createElement("div");
+        byte.className = "byte";
+        byte.innerText = b;
+        bytesDiv.appendChild(byte);
+      });
+    } else {
+      val.innerText = "Empty";
+      for (let j = 0; j < ELEMENT_SIZE; j++) {
+        const byte = document.createElement("div");
+        byte.className = "byte";
+        byte.innerText = "--------";
+        bytesDiv.appendChild(byte);
+      }
+    }
+
+    cell.append(addr, val,bytesDiv,indexDiv);
+    mem.appendChild(cell);
+  }
+}
+
+// Add element
+function add() {
+  if (arr.length === MAX_SIZE_USER) return alert("Array Overflow!");
+  const v = val.value;
+  if (!v) return;
+
+  let value;
+  if (arrayType === "number") value = Number(v);
+  else if (arrayType === "float") value = parseFloat(v);
+  else if (arrayType === "char") {
+    if (v.length !== 1) return alert("Only single character allowed");
+    value = v;
+  }
+
+  arr.push(value);
+  document.getElementById("val").value = "";
+  render();
+}
+
+// Update element
+function update() {
+  const i = Number(uIndex.value);
+  const v = uVal.value;
+  if (i < 0 || i >= arr.length) return alert("Invalid index");
+
+  let value;
+  if (arrayType === "number") value = Number(v);
+  else if (arrayType === "float") value = parseFloat(v);
+  else if (arrayType === "char") {
+    if (v.length !== 1) return alert("Only single character allowed");
+    value = v;
+  }
+
+  arr[i] = value;
+  document.getElementById("uIndex").value = "";
+  document.getElementById("uVal").value = "";
+  render();
+}
+
+// Delete element
+function remove() {
+  const i = Number(dIndex.value);
+  if (i < 0 || i >= arr.length) return alert("Invalid index");
+  arr.splice(i, 1);
+  document.getElementById("dIndex").value = "";
+  if (arr.length === 0) type = null;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queue Visualizer | DSA Visual Lab</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+
+<style>
+
+body{
+    margin:0;
+    font-family:Poppins,sans-serif;
+}
+
+.container{
+    width:95%;
+    max-width:1300px;
+    margin:50px auto;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:50px;
+}
+
+.left-panel{
+    width:700px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.title{
+    margin-bottom:25px;
+}
+
+.input-row{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:40px;
+}
+
+input{
+    width:180px;
+    height:42px;
+    padding:0 12px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);
+    color:#fff;
+}
+
+.btn{
+    height:42px;
+    padding:0 18px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.08);
+    color:#fff;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.queue-wrapper{
+    width:100%;
+}
+
+.queue-container{
+
+    width:100%;
+    min-height:130px;
+
+    display:flex;
+    align-items:center;
+
+    overflow-x:auto;
+
+    gap:15px;
+
+    padding:20px;
+
+    border:3px solid rgba(255,255,255,.35);
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.05);
+
+}
+
+.queue-item{
+
+    width:65px;
+    height:65px;
+
+    flex-shrink:0;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    border-radius:10px;
+
+    background:#6C63FF;
+
+    color:white;
+
+    font-weight:600;
+
+    font-size:20px;
+
+}
+
+.front{
+
+    border:3px solid #00E676;
+
+}
+
+.rear{
+
+    border:3px solid orange;
+
+}
+
+.queue-labels{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:10px;
+
+    font-weight:600;
+
+    color:white;
+
+}
+
+.status{
+
+    margin-top:20px;
+
+    font-size:18px;
+
+}
+
+.log-box{
+
+    width:340px;
+
+    height:420px;
+
+    padding:15px;
+
+    overflow-y:auto;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.06);
+
+    border:1px solid rgba(255,255,255,.2);
+
+}
+
+.back-btn{
+
+    margin-top:35px;
+
+}
+
+@media(max-width:1000px){
+
+.container{
+
+flex-direction:column;
+
+align-items:center;
+
+}
+
+.left-panel{
+
+width:100%;
+
+}
+
+.log-box{
+
+width:100%;
+
+max-width:700px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="left-panel">
+
+        <h1 class="title">Queue Visualizer</h1>
+
+        <div class="input-row">
+
+            <input id="queueValue" placeholder="Enter value">
+
+            <button class="btn" onclick="enqueue()">Enqueue</button>
+
+            <button class="btn" onclick="dequeue()">Dequeue</button>
+
+            <button class="btn" onclick="peek()">Peek</button>
+
+            <button class="btn" onclick="resetQueue()">Reset</button>
+
+        </div>
+
+        <div class="queue-wrapper">
+
+            <div class="queue-container" id="queueArea"></div>
+
+            <div class="queue-labels">
+
+                <span>Front</span>
+
+                <span>Rear</span>
+
+            </div>
+
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <a href="../index.html" class="btn back-btn">⬅ Back Home</a>
+
+    </div>
+
+    <div class="log-box" id="logBox">
+
+        <b>Logs</b><br><br>
+
+    </div>
+
+</div>
+
+
+
+</body>
+<script>
+    let queue = [];
+
+const queueArea = document.getElementById("queueArea");
+const logBox = document.getElementById("logBox");
+const status = document.getElementById("status");
+
+function log(msg){
+    logBox.innerHTML += msg + "<br>";
+    logBox.scrollTop = logBox.scrollHeight;
+}
+
+function render(){
+
+    queueArea.innerHTML = "";
+
+    queue.forEach((value,index)=>{
+
+        const div = document.createElement("div");
+
+        div.className="queue-item slide";
+
+        if(index===0)
+            div.classList.add("front");
+
+        if(index===queue.length-1)
+            div.classList.add("rear");
+
+        div.innerHTML=value;
+
+        queueArea.appendChild(div);
+
+    });
+
+    if(queue.length===0)
+        status.innerHTML="Queue Empty";
+    else
+        status.innerHTML=
+        "Front : "+queue[0]+" | Rear : "+queue[queue.length-1]+" | Size : "+queue.length;
+
+}
+
+function enqueue(){
+
+    let value=document.getElementById("queueValue").value.trim();
+
+    if(value===""){
+        alert("Enter value");
+        return;
+    }
+
+    queue.push(value);
+
+    log("Enqueue → "+value);
+
+    document.getElementById("queueValue").value="";
+
+    render();
+
+}
+
+function dequeue(){
+
+    if(queue.length===0){
+
+        alert("Queue Underflow");
+
+        return;
+
+    }
+
+    let removed=queue.shift();
+
+    log("Dequeue → "+removed);
+
+    render();
+
+}
+
+function peek(){
+
+    if(queue.length===0){
+
+        alert("Queue Empty");
+
+        return;
+
+    }
+
+    alert("Front Element : "+queue[0]);
+
+    log("Peek → "+queue[0]);
+
+}
+
+function resetQueue(){
+
+    queue=[];
+
+    log("Queue Reset");
+
+    render();
+
+}
+
+render();
+</script>
+</html>

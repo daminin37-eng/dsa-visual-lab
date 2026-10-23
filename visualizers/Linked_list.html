@@ -1,0 +1,810 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked List Visualizer</title>
+
+<style>
+:root {
+  --bg: #0b1020;
+  --panel: #131c30;
+  --border: #293650;
+  --text: #edf3ff;
+  --muted: #94a3b8;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --green: #34d399;
+  --red: #fb7185;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+header {
+  padding: 25px 6%;
+  border-bottom: 1px solid var(--border);
+  background: #0e1629;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 27px;
+}
+
+header h1 span { color: var(--blue); }
+
+header p, .muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat, .panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.stat { padding: 18px; }
+
+.stat small {
+  color: var(--muted);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.stat strong { font-size: 25px; }
+
+.panel {
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.panel h2 {
+  font-size: 18px;
+  margin: 0 0 7px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 18px;
+}
+
+input, select, button {
+  font: inherit;
+  border-radius: 8px;
+  padding: 11px 13px;
+}
+
+input, select {
+  background: #0b1426;
+  border: 1px solid var(--border);
+  color: var(--text);
+  min-width: 115px;
+  outline: none;
+}
+
+input:focus { border-color: var(--blue); }
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: #202d45;
+  transition: 0.2s;
+}
+
+button:hover {
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+
+button.primary {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+button.danger { color: var(--red); }
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.visualizer {
+  overflow-x: auto;
+  min-height: 240px;
+  padding: 24px 12px;
+  background:
+    radial-gradient(#25334b 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 12px;
+}
+
+.list-canvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: max-content;
+  min-height: 185px;
+  padding: 20px 15px;
+}
+
+.node-wrap {
+  display: flex;
+  align-items: center;
+}
+
+
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.node.active {
+  border: 2px solid var(--green);
+  box-shadow: 0 0 22px #34d39955;
+  transform: translateY(-6px);
+}
+
+.node.found {
+  border: 2px solid var(--purple);
+  box-shadow: 0 0 22px #a78bfa55;
+}
+
+.node-head {
+  padding: 7px;
+  font-size: 11px;
+  text-align: center;
+  background: #223c60;
+  color: #bfdbfe;
+}
+
+
+.node {
+  width: 270px;
+  flex-shrink: 0;
+  background: #162a46;
+  border: 1px solid #4776a9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.node-body {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 1.4fr;
+}
+
+.node-cell {
+  min-width: 0;
+  padding: 12px 5px;
+  text-align: center;
+  border-right: 1px solid #4776a9;
+}
+
+.node-cell:last-child {
+  border-right: none;
+}
+
+.cell-label {
+  display: block;
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.cell-value {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #bfdbfe;
+  overflow-wrap: anywhere;
+}
+
+.node-cell:last-child .cell-value {
+  color: #34d399;
+}
+
+.node-cell:last-child .null-pointer {
+  color: #fb7185;
+}
+
+
+.arrow {
+  width: 43px;
+  text-align: center;
+  color: var(--green);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.null-node {
+  color: var(--red);
+  border: 1px dashed var(--red);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.edge-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 5px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 45px 20px;
+}
+
+.status {
+  margin-top: 17px;
+  border: 1px solid var(--border);
+  background: #0c1425;
+  padding: 14px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.status strong { color: var(--green); }
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.pseudocode {
+  color: #cbd5e1;
+  line-height: 2;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+}
+
+.highlight-line {
+  color: var(--green);
+  font-weight: bold;
+}
+
+.log {
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.log div {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media(max-width: 650px) {
+  main { padding: 14px; }
+  .stats { gap: 8px; }
+  .stat { padding: 12px; }
+  .stat strong { font-size: 20px; }
+  .bottom-grid { grid-template-columns: 1fr; }
+  .panel { padding: 15px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>Linked List <span>Visualizer</span></h1>
+  <p>Understand nodes, pointers, traversal and linked-list operations.</p>
+  <a href="../index.html" class="btn back-btn">⬅ Back Home</a>
+</header>
+
+<main>
+  <section class="stats">
+    <div class="stat">
+      <small>Total Nodes</small>
+      <strong id="count">5</strong>
+    </div>
+    <div class="stat">
+      <small>Head Value</small>
+      <strong id="headValue">10</strong>
+    </div>
+    <div class="stat">
+      <small>Tail Value</small>
+      <strong id="tailValue">50</strong>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Operations</h2>
+    <p class="muted">Choose an operation and see the linked list update.</p>
+
+    <div class="toolbar">
+      <input id="valueInput" type="text" placeholder="Enter value"
+             aria-label="Node value">
+      <button class="primary" onclick="insertHead()">Insert at Head</button>
+      <button class="primary" onclick="insertTail()">Insert at Tail</button>
+      <button onclick="deleteValue()">Delete Value</button>
+      <button onclick="searchValue()">Search</button>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="traverse()">▶ Traverse</button>
+      <button onclick="reverseList()">↔ Reverse List</button>
+      <button onclick="resetList()">↺ Reset</button>
+      <button onclick="clearList()" class="danger">Clear List</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Memory Representation</h2>
+    <p class="muted">
+      Each node stores data and a pointer to the next node.
+      The last node points to NULL.
+    </p>
+
+    <div class="visualizer">
+      <div id="canvas" class="list-canvas"></div>
+    </div>
+
+    <div id="status" class="status" aria-live="polite">
+      <strong>Ready!</strong> Select an operation to begin.
+    </div>
+  </section>
+
+  <div class="bottom-grid">
+    <section class="panel">
+      <h2>How it works</h2>
+      <div class="pseudocode" id="pseudo">
+        <div>1. Start from HEAD.</div>
+        <div>2. Read current node data.</div>
+        <div>3. Follow the NEXT pointer.</div>
+        <div>4. Stop when NEXT = NULL.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Operation Log</h2>
+      <div id="log" class="log">
+        <div>Successfully Instantiated.</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Data Structures & Algorithms · Singly Linked List
+</footer>
+
+<script>
+// Each node contains data and a reference to the next node.
+
+let nextAddress = 0x1000;
+
+class Node {
+  constructor(data) {
+    this.data = data;
+
+    // Give every node a simulated memory address
+    this.address = "0x" + nextAddress
+      .toString(16)
+      .toUpperCase();
+
+    nextAddress += 0x56;
+    this.next = null;
+  }
+} 
+let head = null;
+let activeNode = null;
+let foundNode = null;
+let busy = false;
+
+function getNodes() {
+  const nodes = [];
+  let current = head;
+
+  while (current !== null) {
+    nodes.push(current);
+    current = current.next;
+  }
+
+  return nodes;
+}
+
+function setStatus(message) {
+  document.getElementById("status").innerHTML = message;
+}
+
+function addLog(message) {
+  const log = document.getElementById("log");
+  const entry = document.createElement("div");
+  entry.textContent = new Date().toLocaleTimeString() + " — " + message;
+  log.prepend(entry);
+
+  while (log.children.length > 30) {
+    log.lastElementChild.remove();
+  }
+}
+
+function render() {
+  const canvas = document.getElementById("canvas");
+  const nodes = getNodes();
+
+  document.getElementById("count").textContent = nodes.length;
+  document.getElementById("headValue").textContent =
+    head ? head.data : "NULL";
+  document.getElementById("tailValue").textContent =
+    nodes.length ? nodes[nodes.length - 1].data : "NULL";
+
+  canvas.replaceChildren();
+
+  if (!head) {
+    canvas.innerHTML =
+      '<div class="empty">HEAD → NULL<br><br>Your linked list is empty. Add a node to get started.</div>';
+    return;
+  }
+
+  // Build nodes with DOM methods, so user data is never treated as HTML.
+  nodes.forEach((node, index) => {
+    const wrap = document.createElement("div");
+    wrap.className = "node-wrap";
+
+    const box = document.createElement("div");
+    box.className = "node";
+    if (node === activeNode) box.classList.add("active");
+    if (node === foundNode) box.classList.add("found");
+
+    const label = document.createElement("div");
+    label.className = "node-head";
+    label.textContent = index === 0 ? "HEAD / NODE " + index : "NODE " + index;
+
+    
+const body = document.createElement("div");
+body.className = "node-body";
+
+// DATA field
+const dataCell = document.createElement("div");
+dataCell.className = "node-cell";
+dataCell.innerHTML =
+  '<span class="cell-label">DATA</span>';
+
+const dataValue = document.createElement("span");
+dataValue.className = "cell-value";
+dataValue.textContent = node.data;
+dataCell.append(dataValue);
+
+// ADDRESS field
+const addressCell = document.createElement("div");
+addressCell.className = "node-cell";
+addressCell.innerHTML =
+  '<span class="cell-label">ADDRESS</span>';
+
+const addressValue = document.createElement("span");
+addressValue.className = "cell-value";
+addressValue.textContent = node.address;
+addressCell.append(addressValue);
+
+// NEXT ADDRESS field
+const nextCell = document.createElement("div");
+nextCell.className = "node-cell";
+nextCell.innerHTML =
+  '<span class="cell-label">NEXT ADDRESS</span>';
+
+const nextValue = document.createElement("span");
+nextValue.className = "cell-value";
+nextValue.textContent = node.next
+  ? node.next.address
+  : "NULL";
+
+if (!node.next) {
+  nextValue.classList.add("null-pointer");
+}
+
+nextCell.append(nextValue);
+
+// Put all three fields inside the node
+body.append(dataCell, addressCell, nextCell);
+box.append(label, body);
+wrap.append(box);
+canvas.append(wrap);
+
+    if (node.next) {
+      const arrowWrap = document.createElement("div");
+      arrowWrap.style.width = "43px";
+      arrowWrap.style.flexShrink = "0";
+
+      const arrow = document.createElement("div");
+      arrow.className = "arrow";
+      arrow.textContent = "→";
+
+      const caption = document.createElement("div");
+      caption.className = "edge-label";
+      caption.textContent = "next";
+
+      arrowWrap.append(arrow, caption);
+      canvas.append(arrowWrap);
+    } else {
+      const nullBox = document.createElement("div");
+      nullBox.className = "null-node";
+      nullBox.textContent = "NULL";
+      canvas.append(nullBox);
+    }
+  });
+}
+
+
+function readValue() {
+  const input = document.getElementById("valueInput");
+  const value = input.value.trim();
+
+  if (value === "") {
+    setStatus("Please enter some data first.");
+    input.focus();
+    return null;
+  }
+
+  // Return text or numbers as strings.
+  return value;
+}
+function insertHead() {
+  if (busy) return;
+  const value = readValue();
+  if (value === null) return;
+
+  const node = new Node(value);
+  node.next = head;
+  head = node;
+  activeNode = node;
+  foundNode = null;
+
+  render();
+  setStatus(`<strong>Inserted ${value} at HEAD.</strong><br>
+    New node points to the old head. Time complexity: O(1).`);
+  addLog("Inserted " + value + " at head.");
+}
+
+function insertTail() {
+  if (busy) return;
+  const value = readValue();
+  if (value === null) return;
+
+  const node = new Node(value);
+
+  if (!head) {
+    head = node;
+  } else {
+    let current = head;
+    while (current.next !== null) {
+      current = current.next;
+    }
+    current.next = node;
+  }
+
+  activeNode = node;
+  foundNode = null;
+  render();
+
+  setStatus(`<strong>Inserted ${value} at TAIL.</strong><br>
+    The previous last node now points to the new node. Time complexity: O(n).`);
+  addLog("Inserted " + value + " at tail.");
+}
+
+function deleteValue() {
+  if (busy) return;
+  const value = readValue();
+  if (value === null) return;
+
+  if (!head) {
+    setStatus("The list is empty.");
+    return;
+  }
+
+  if (head.data === value) {
+    head = head.next;
+    activeNode = head;
+    foundNode = null;
+    render();
+    setStatus(`<strong>Deleted ${value}.</strong><br>HEAD now points to the next node.`);
+    addLog("Deleted " + value + " from head.");
+    return;
+  }
+
+  let current = head;
+
+  while (current.next && current.next.data !== value) {
+    current = current.next;
+  }
+
+  if (!current.next) {
+    setStatus("Value " + value + " was not found.");
+    return;
+  }
+
+  // Skip the node being deleted.
+  current.next = current.next.next;
+  activeNode = current;
+  foundNode = null;
+
+  render();
+  setStatus(`<strong>Deleted ${value}.</strong><br>
+    The previous node now points to the deleted node's successor.`);
+  addLog("Deleted " + value + ".");
+}
+
+function searchValue() {
+  if (busy) return;
+  const value = readValue();
+  if (value === null) return;
+
+  foundNode = null;
+  activeNode = null;
+
+  let current = head;
+  let position = 0;
+
+  while (current) {
+    activeNode = current;
+    render();
+
+    if (current.data === value) {
+      foundNode = current;
+      render();
+      setStatus(`<strong>Found ${value}!</strong><br>
+        Position: ${position}. Nodes visited: ${position + 1}.`);
+      addLog("Found " + value + " at position " + position + ".");
+      return;
+    }
+
+    current = current.next;
+    position++;
+  }
+
+  activeNode = null;
+  render();
+  setStatus("Value " + value + " was not found in the list.");
+  addLog("Search failed for " + value + ".");
+}
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function traverse() {
+  if (busy) return;
+  if (!head) {
+    setStatus("The list is empty. Add some nodes first.");
+    return;
+  }
+
+  busy = true;
+  updateButtons();
+
+  activeNode = null;
+  foundNode = null;
+
+  let current = head;
+  let position = 0;
+
+  while (current) {
+    activeNode = current;
+    render();
+    setStatus(`<strong>Traversing node ${position}.</strong><br>
+      Data = ${current.data}. Following its next pointer...`);
+    await sleep(650);
+    current = current.next;
+    position++;
+  }
+
+  activeNode = null;
+  render();
+  setStatus(`<strong>Traversal complete!</strong><br>
+    Visited ${position} nodes. The next pointer reached NULL.`);
+  addLog("Traversed " + position + " nodes.");
+
+  busy = false;
+  updateButtons();
+}
+
+function reverseList() {
+  if (busy) return;
+
+  let previous = null;
+  let current = head;
+
+  while (current) {
+    const nextNode = current.next;
+    current.next = previous;
+    previous = current;
+    current = nextNode;
+  }
+
+  head = previous;
+  activeNode = head;
+  foundNode = null;
+
+  render();
+  setStatus(`<strong>Linked list reversed!</strong><br>
+    Every next pointer now points in the opposite direction. Time complexity: O(n).`);
+  addLog("Reversed the linked list.");
+}
+
+function resetList() {
+  if (busy) return;
+  head = null;
+
+  [].forEach(value => {
+    const node = new Node(value);
+
+    if (!head) {
+      head = node;
+    } else {
+      let current = head;
+      while (current.next) current = current.next;
+      current.next = node;
+    }
+  });
+
+  activeNode = null;
+  foundNode = null;
+  render();
+
+  setStatus("<strong>Reset complete.</strong> Restored the default list.");
+}
+
+function clearList() {
+  if (busy) return;
+  head = null;
+  activeNode = null;
+  foundNode = null;
+  render();
+  setStatus("<strong>List cleared.</strong> HEAD now points to NULL.");
+  addLog("Cleared the list.");
+}
+
+function updateButtons() {
+  document.querySelectorAll("button").forEach(button => {
+    button.disabled = busy;
+  });
+}
+
+// Allow Enter to trigger insertion at the tail.
+document.getElementById("valueInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") insertTail();
+});
+
+resetList();
+</script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Search Tree Visualizer</title>
+<style>
+:root {
+  --bg:#0b1020; --panel:#131c30; --panel2:#0e1729; --border:#293650;
+  --text:#edf3ff; --muted:#9aa9c2; --blue:#60a5fa; --green:#34d399;
+  --purple:#a78bfa; --red:#fb7185;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+header{padding:24px 5%;background:#0e1629;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
+header h1{margin:0 0 7px;font-size:clamp(22px,3vw,30px)}
+header h1 span{color:var(--blue)}
+header p{margin:0;color:var(--muted);font-size:14px}
+.pill{border:1px solid #365071;color:#bfdbfe;padding:10px 14px;border-radius:10px;white-space:nowrap;font-size:13px}
+main{max-width:1500px;margin:auto;padding:22px;display:grid;grid-template-columns:245px minmax(400px,1fr) 280px;gap:16px}
+.column{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;min-width:0}
+h2{font-size:17px;margin:0 0 8px}
+.hint{font-size:12px;line-height:1.5;color:var(--muted);margin:0 0 15px}
+input,button{font:inherit;border-radius:9px;padding:11px 12px}
+input{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);outline:none}
+input:focus{border-color:var(--blue)}
+button{border:1px solid var(--border);background:#202d45;color:var(--text);cursor:pointer;transition:.15s}
+button:hover{border-color:var(--blue);transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+button.primary{background:#2563eb;border-color:#3b82f6}
+button.danger{background:#4a1f30;border-color:#713044;color:#fecdd3}
+button.full{width:100%;margin-top:9px}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.traversals{display:grid;gap:8px}
+.traversals button{text-align:left}
+.traversals button.selected{border-color:var(--blue);background:#17345b}
+.status{font-size:13px;line-height:1.6;color:var(--muted);background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:13px;overflow-wrap:anywhere}
+.status strong{color:var(--green)}
+.canvas-panel{display:flex;flex-direction:column;min-height:590px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 12px;color:var(--muted);font-size:12px}
+.legend span{display:flex;align-items:center;gap:7px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.root{background:#3b82f6}.dot.internal{background:#60a5fa}.dot.leaf{background:#34d399}
+.tree-scroll{overflow:auto;flex:1;min-height:430px;background-image:radial-gradient(#25334b 1px,transparent 1px);background-size:22px 22px;border-radius:10px}
+svg{display:block;width:100%;height:100%;min-height:430px}
+.edge{stroke:#647895;stroke-width:2.2;fill:none}
+.node-circle{stroke-width:2.5;cursor:pointer;transition:filter .2s,stroke .2s}
+.node-circle.root{fill:#2563eb;stroke:#60a5fa}
+.node-circle.internal{fill:#28558b;stroke:#60a5fa}
+.node-circle.leaf{fill:#087a56;stroke:#34d399}
+.node-circle.active{stroke:#fbbf24;stroke-width:5;filter:drop-shadow(0 0 8px #fbbf2488)}
+.node-text{fill:#fff;font-size:18px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.empty{height:400px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:25px}
+.info-list{display:grid;gap:13px;margin-top:15px}
+.info-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted)}
+.info-row strong{color:var(--text);text-align:right;font-weight:600}
+.tree-structure{font:13px/1.85 Consolas,monospace;white-space:pre;overflow:auto;color:#cbd5e1;margin-top:12px}
+.result-list{display:grid;gap:10px;margin-top:13px}
+.result-item{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:11px}
+.result-item.active{border-color:var(--blue);background:#122747}
+.result-title{font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px}
+.result-values{font-size:12px;line-height:1.8;overflow-wrap:anywhere;color:#dbeafe}
+.note{max-width:1500px;margin:0 auto 22px;padding:0 22px}
+.note div{background:#101b30;border:1px solid var(--border);border-radius:10px;padding:13px 15px;color:var(--muted);font-size:12px;line-height:1.6}
+@media(max-width:1100px){main{grid-template-columns:220px minmax(0,1fr)}.right-column{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}.canvas-panel{min-height:520px}}
+@media(max-width:700px){header{align-items:flex-start;flex-direction:column}main{display:flex;flex-direction:column;padding:12px}.right-column{display:flex}.canvas-panel{min-height:450px}.tree-scroll{min-height:350px}svg{min-height:350px}.note{padding:0 12px}.pill{white-space:normal}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🌳 Binary Tree <span>Visualizer</span></h1><p>Understand nodes, branches and traversal — step by step.</p></div>
+  <div class="pill">Binary Search Tree (BST)</div>
+</header>
+<main>
+  <div class="column">
+    <section class="panel">
+      <h2>Add or Remove a Node</h2>
+      <p class="hint">Enter a number. Smaller values go left; larger values go right.</p>
+      <input id="valueInput" type="number" placeholder="Enter value (e.g. 50)" aria-label="Node value">
+      <button class="primary full" id="insertBtn">＋ Insert Node</button>
+      <div class="btnrow">
+        <button class="danger" id="deleteBtn">Delete</button>
+        <button id="resetBtn">Reset Example</button>
+      </div>
+      <button class="full" id="clearBtn">Clear Tree</button>
+      <div class="status" id="status" aria-live="polite"><strong>Ready.</strong> Select a node operation to begin.</div>
+    </section>
+    <section class="panel">
+      <h2>Traversal</h2>
+      <p class="hint">Choose how to visit each node.</p>
+      <div class="traversals">
+        <button data-traversal="inorder" class="selected">Inorder (Left · Root · Right)</button>
+        <button data-traversal="preorder">Preorder (Root · Left · Right)</button>
+        <button data-traversal="postorder">Postorder (Left · Right · Root)</button>
+        <button data-traversal="levelorder">Level Order (by level)</button>
+      </div>
+      <button class="primary full" id="animateBtn">▶ Animate Traversal</button>
+      <button class="full" id="stopBtn" disabled>Stop Animation</button>
+    </section>
+    <section class="panel">
+      <h2>Tree Info</h2>
+      <div class="info-list">
+        <div class="info-row"><span>Tree type</span><strong>BST</strong></div>
+        <div class="info-row"><span>Total nodes</span><strong id="nodeCount">7</strong></div>
+        <div class="info-row"><span>Height (levels)</span><strong id="height">3</strong></div>
+        <div class="info-row"><span>Root value</span><strong id="rootValue">50</strong></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel canvas-panel">
+    <div class="legend">
+      <span><i class="dot root"></i>Root</span>
+      <span><i class="dot internal"></i>Internal node</span>
+      <span><i class="dot leaf"></i>Leaf node</span>
+      <span>Click a node to inspect it</span>
+    </div>
+    <div class="tree-scroll" id="treeScroll">
+      <svg id="treeSvg" role="img" aria-label="Binary search tree diagram"></svg>
+    </div>
+  </section>
+
+  <div class="column right-column">
+    <section class="panel">
+      <h2>Selected Node</h2>
+      <p class="hint">Click a circle in the tree to inspect its relationships.</p>
+      <div class="info-list">
+        <div class="info-row"><span>Value</span><strong id="selectedValue">50</strong></div>
+        <div class="info-row"><span>Parent</span><strong id="selectedParent">None (root)</strong></div>
+        <div class="info-row"><span>Left child</span><strong id="selectedLeft">30</strong></div>
+        <div class="info-row"><span>Right child</span><strong id="selectedRight">70</strong></div>
+        <div class="info-row"><span>Node type</span><strong id="selectedType">Root</strong></div>
+      </div>
+      <div class="tree-structure" id="structure">50
+├── 30
+│   ├── 20
+│   └── 40
+└── 70
+    ├── 60
+    └── 80</div>
+    </section>
+    <section class="panel">
+      <h2>Traversal Results</h2>
+      <p class="hint">The selected traversal sequence updates when the tree changes.</p>
+      <div class="result-list" id="results"></div>
+    </section>
+  </div>
+</main>
+<div class="note"><div><strong>BST rule:</strong> For every node, values in its left subtree are smaller and values in its right subtree are larger. Addresses and positions are visual layout only; this page models tree links through JavaScript object references.</div></div>
+
+<script>
+class TreeNode {
+  constructor(value) { this.value = value; this.left = null; this.right = null; }
+}
+let root = null;
+let selectedValue = null;
+let activeValue = null;
+let traversalType = "inorder";
+let animationToken = 0;
+let animating = false;
+
+const $ = id => document.getElementById(id);
+function findNode(value, node = root, parent = null) {
+  while (node) {
+    if (value === node.value) return {node, parent};
+    parent = node;
+    node = value < node.value ? node.left : node.right;
+  }
+  return null;
+}
+function insert(value) {
+  if (!root) { root = new TreeNode(value); return true; }
+  let current = root;
+  while (true) {
+    if (value === current.value) return false;
+    if (value < current.value) {
+      if (!current.left) { current.left = new TreeNode(value); return true; }
+      current = current.left;
+    } else {
+      if (!current.right) { current.right = new TreeNode(value); return true; }
+      current = current.right;
+    }
+  }
+}
+function minNode(node) { while (node && node.left) node = node.left; return node; }
+function deleteNode(node, value) {
+  if (!node) return null;
+  if (value < node.value) node.left = deleteNode(node.left, value);
+  else if (value > node.value) node.right = deleteNode(node.right, value);
+  else {
+    if (!node.left) return node.right;
+    if (!node.right) return node.left;
+    const successor = minNode(node.right);
+    node.value = successor.value;
+    node.right = deleteNode(node.right, successor.value);
+  }
+  return node;
+}
+function allNodes(node = root, arr = []) {
+  if (!node) return arr;
+  arr.push(node); allNodes(node.left, arr); allNodes(node.right, arr); return arr;
+}
+function height(node) { return node ? 1 + Math.max(height(node.left), height(node.right)) : 0; }
+function traverse(type, node = root, out = []) {
+  if (!node) return out;
+  if (type === "preorder") out.push(node.value);
+  if (type === "inorder") traverse(type, node.left, out);
+  if (type === "preorder" || type === "inorder" || type === "postorder") {
+    if (type === "inorder") out.push(node.value);
+    traverse(type, node.left, type === "postorder" ? out : []);
+    if (type === "postorder") { /* handled below by dedicated traversal */ }
+  }
+  return out;
+}
+function getTraversal(type) {
+  const out = [];
+  function walk(n) {
+    if (!n) return;
+    if (type === "preorder") out.push(n.value);
+    if (type === "inorder" || type === "postorder") walk(n.left);
+    if (type === "inorder") out.push(n.value);
+    if (type === "preorder") walk(n.left);
+    if (type === "postorder") { walk(n.right); out.push(n.value); return; }
+    walk(n.right);
+  }
+  if (type === "levelorder") {
+    const q = root ? [root] : [];
+    while (q.length) { const n = q.shift(); out.push(n.value); if(n.left)q.push(n.left); if(n.right)q.push(n.right); }
+  } else walk(root);
+  return out;
+}
+function structureText(node, prefix = "", isLeft = true, isRoot = true) {
+  if (!node) return "";
+  let result = isRoot ? String(node.value) : prefix + (isLeft ? "├── " : "└── ") + node.value;
+  const childPrefix = isRoot ? "" : prefix + (isLeft ? "│   " : "    ");
+  const children = [];
+  if (node.left) children.push({node:node.left,left:true});
+  if (node.right) children.push({node:node.right,left:false});
+  children.forEach((child, i) => {
+    result += "\n" + structureText(child.node, childPrefix, i < children.length - 1, false);
+  });
+  return result;
+}
+function setStatus(html) { $("status").innerHTML = html; }
+function render() {
+  const svg = $("treeSvg");
+  svg.replaceChildren();
+  const nodes = allNodes();
+  $("nodeCount").textContent = nodes.length;
+  $("height").textContent = height(root);
+  $("rootValue").textContent = root ? root.value : "—";
+  $("structure").textContent = root ? structureText(root) : "(empty tree)";
+  if (!root) {
+    svg.setAttribute("viewBox", "0 0 700 420");
+    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("x","350"); text.setAttribute("y","210");
+    text.setAttribute("fill","#9aa9c2"); text.setAttribute("text-anchor","middle");
+    text.setAttribute("font-size","16"); text.textContent = "Tree is empty — insert a value to begin";
+    svg.append(text);
+    updateSelected(); updateResults(); return;
+  }
+
+  // Inorder ranks keep nodes on separate horizontal positions.
+  const positions = new Map();
+  let rank = 0, maxDepth = 0;
+  function assign(n, depth) {
+    if (!n) return;
+    maxDepth = Math.max(maxDepth, depth);
+    assign(n.left, depth + 1);
+    positions.set(n, {rank:rank++, depth});
+    assign(n.right, depth + 1);
+  }
+  assign(root, 0);
+  const width = Math.max(700, rank * 115 + 80);
+  const heightSvg = Math.max(420, (maxDepth + 1) * 115 + 80);
+  svg.setAttribute("viewBox", `0 0 ${width} ${heightSvg}`);
+  svg.style.minWidth = Math.min(width, 1500) + "px";
+  const xStep = (width - 80) / Math.max(rank, 1);
+  const coords = new Map();
+  for (const [n,p] of positions) coords.set(n,{x:40 + (p.rank + .5)*xStep,y:45 + p.depth*115});
+
+  const ns = "http://www.w3.org/2000/svg";
+  function line(x1,y1,x2,y2) {
+    const el = document.createElementNS(ns,"line");
+    const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy), r=31;
+    el.setAttribute("x1",x1+dx/len*r); el.setAttribute("y1",y1+dy/len*r);
+    el.setAttribute("x2",x2-dx/len*r); el.setAttribute("y2",y2-dy/len*r);
+    el.setAttribute("class","edge"); el.setAttribute("marker-end","url(#arrow)");
+    svg.append(el);
+  }
+  const defs=document.createElementNS(ns,"defs");
+  const marker=document.createElementNS(ns,"marker");
+  marker.setAttribute("id","arrow"); marker.setAttribute("markerWidth","8"); marker.setAttribute("markerHeight","8");
+  marker.setAttribute("refX","6"); marker.setAttribute("refY","3"); marker.setAttribute("orient","auto");
+  const path=document.createElementNS(ns,"path"); path.setAttribute("d","M0,0 L0,6 L6,3 z"); path.setAttribute("fill","#647895");
+  marker.append(path); defs.append(marker); svg.append(defs);
+
+  for (const n of nodes) {
+    const p=coords.get(n);
+    if(n.left) line(p.x,p.y,coords.get(n.left).x,coords.get(n.left).y);
+    if(n.right) line(p.x,p.y,coords.get(n.right).x,coords.get(n.right).y);
+  }
+  for (const n of nodes) {
+    const p=coords.get(n), g=document.createElementNS(ns,"g");
+    g.style.cursor="pointer";
+    const c=document.createElementNS(ns,"circle");
+    c.setAttribute("cx",p.x); c.setAttribute("cy",p.y); c.setAttribute("r",29);
+    const kind=n===root?"root":(!n.left&&!n.right?"leaf":"internal");
+    c.setAttribute("class","node-circle "+kind+(n.value===activeValue?" active":""));
+    const t=document.createElementNS(ns,"text");
+    t.setAttribute("x",p.x);t.setAttribute("y",p.y);t.setAttribute("class","node-text");t.textContent=n.value;
+    g.append(c,t);
+    g.addEventListener("click",()=>{selectedValue=n.value;updateSelected();renderSelectionOnly();});
+    svg.append(g);
+  }
+  updateSelected(); updateResults();
+}
+function renderSelectionOnly() {
+  svgHighlight();
+}
+function svgHighlight() {
+  $("treeSvg").querySelectorAll(".node-circle").forEach(c=>{
+    c.classList.toggle("active", Number(c.nextSibling.textContent)===selectedValue || Number(c.nextSibling.textContent)===activeValue);
+  });
+}
+function updateSelected() {
+  const found = selectedValue === null ? null : findNode(selectedValue);
+  $("selectedValue").textContent = found ? found.node.value : "—";
+  $("selectedParent").textContent = found ? (found.parent ? found.parent.value : "None (root)") : "—";
+  $("selectedLeft").textContent = found && found.node.left ? found.node.left.value : "None";
+  $("selectedRight").textContent = found && found.node.right ? found.node.right.value : "None";
+  $("selectedType").textContent = !found ? "—" : (!found.parent ? "Root" : (!found.node.left&&!found.node.right ? "Leaf" : "Internal"));
+}
+function updateResults() {
+  const labels = {inorder:"Inorder (Left · Root · Right)",preorder:"Preorder (Root · Left · Right)",postorder:"Postorder (Left · Right · Root)",levelorder:"Level Order"};
+  $("results").innerHTML = "";
+  ["inorder","preorder","postorder","levelorder"].forEach(type=>{
+    const item=document.createElement("div"); item.className="result-item"+(type===traversalType?" active":"");
+    const title=document.createElement("div"); title.className="result-title"; title.textContent=labels[type];
+    const values=document.createElement("div"); values.className="result-values"; values.textContent=getTraversal(type).join("  →  ") || "—";
+    item.append(title,values); $("results").append(item);
+  });
+  document.querySelectorAll("[data-traversal]").forEach(b=>b.classList.toggle("selected",b.dataset.traversal===traversalType));
+}
+function getInputValue() {
+  const raw=$("valueInput").value.trim();
+  if(raw===""){setStatus("Please enter a number first.");$("valueInput").focus();return null;}
+  const value=Number(raw);
+  if(!Number.isFinite(value)){setStatus("Enter a valid finite number.");return null;}
+  return value;
+}
+function stopAnimation() { animationToken++; animating=false; activeValue=null; $("animateBtn").disabled=false; $("stopBtn").disabled=true; render(); }
+$("insertBtn").addEventListener("click",()=>{
+  if(animating)return;
+  const value=getInputValue(); if(value===null)return;
+  if(!insert(value)){setStatus(`<strong>${value} already exists.</strong> Duplicate values are not added to this BST.`);return;}
+  selectedValue=value;activeValue=null;render();
+  setStatus(`<strong>Inserted ${value}.</strong><br>Compare values from the root: smaller goes left, larger goes right.`);
+});
+$("deleteBtn").addEventListener("click",()=>{
+  if(animating)return;
+  const value=getInputValue();if(value===null)return;
+  if(!findNode(value)){setStatus(`Value ${value} is not in the tree.`);return;}
+  root=deleteNode(root,value);selectedValue=root?root.value:null;activeValue=null;render();
+  setStatus(`<strong>Deleted ${value}.</strong><br>The tree links have been updated to keep the BST rule.`);
+});
+$("clearBtn").addEventListener("click",()=>{
+  if(animating)return;root=null;selectedValue=null;activeValue=null;render();setStatus("<strong>Tree cleared.</strong> Insert a number to start a new tree.");
+});
+$("resetBtn").addEventListener("click",()=>{
+  if(animating)return;root=null;[50,30,70,20,40,60,80].forEach(insert);selectedValue=50;activeValue=null;render();setStatus("<strong>Example restored.</strong> Click any node to inspect its parent and children.");
+});
+$("valueInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("insertBtn").click();});
+document.querySelectorAll("[data-traversal]").forEach(b=>b.addEventListener("click",()=>{
+  traversalType=b.dataset.traversal;updateResults();
+}));
+$("animateBtn").addEventListener("click",async()=>{
+  if(animating)return;
+  const sequence=getTraversal(traversalType);
+  if(!sequence.length){setStatus("The tree is empty. Insert a node first.");return;}
+  animating=true;$("animateBtn").disabled=true;$("stopBtn").disabled=false;
+  const token=++animationToken;
+  const labels={inorder:"Inorder",preorder:"Preorder",postorder:"Postorder",levelorder:"Level order"};
+  for(let i=0;i<sequence.length;i++){
+    if(token!==animationToken)return;
+    activeValue=sequence[i];selectedValue=activeValue;render();
+    setStatus(`<strong>${labels[traversalType]} traversal — step ${i+1} of ${sequence.length}</strong><br>Visiting node ${activeValue}.`);
+    await new Promise(resolve=>setTimeout(resolve,650));
+  }
+  if(token!==animationToken)return;
+  animating=false;activeValue=null;$("animateBtn").disabled=false;$("stopBtn").disabled=true;render();
+  setStatus(`<strong>Traversal complete!</strong><br>Order: ${sequence.join(" → ")}`);
+});
+$("stopBtn").addEventListener("click",stopAnimation);
+[50,30,70,20,40,60,80].forEach(insert);
+selectedValue=50;render();
+</script>
+</body>
+</html>
